@@ -1,6 +1,7 @@
 services:
   minio:
     image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: miniotask-minio
     command: server --console-address ":9001" /data/
     expose:
       - "9000"
@@ -13,22 +14,50 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    hostname: minio
+    networks:
+      - miniotask
     volumes:
       - data:/data
 
   nginx:
     image: nginx:1.19.2-alpine
-    hostname: nginx
+    container_name: miniotask-nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - miniotask
     ports:
       - "9000:9000"
       - "9001:9001"
+      - "8080:8080"
     depends_on:
       - minio
 
-## By default this config uses default local driver,
-## For custom volumes replace with volume driver configuration.
+  demoapp:
+    image: miniotask/demoapp
+    container_name: miniotask-demoapp
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - miniotask
+    environment:
+      - FLASK_DEBUG=1
+      - SECRET_KEY=supersecretkey
+      - MINIO_ENDPOINT=miniotask-nginx:9000
+      - MINIO_ACCESS_KEY=SsbOjc5QK2MsGOdO36Is
+      - MINIO_SECRET_KEY=SdvNeRacpPliQOma2iwWt3XnkQCsAvY8azzZNXc8
+      - MINIO_BUCKET_NAME=images
+    volumes:
+      - ./app/static/files:/app/static/files
+    depends_on:
+      - minio
+      - nginx
+
+networks:
+  miniotask: 
+    name: miniotask
+
 volumes:
   data:
