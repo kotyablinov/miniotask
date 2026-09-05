@@ -4,8 +4,8 @@ from botocore.exceptions import NoCredentialsError
 
 # Конфигурация MinIO
 MINIO_ENDPOINT = "localhost:9000"
-ACCESS_KEY = "SsbOjc5QK2MsGOdO36Is"
-SECRET_KEY = "SdvNeRacpPliQOma2iwWt3XnkQCsAvY8azzZNXc8"
+ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
+SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 BUCKET_NAME = "images"
 LOCAL_FOLDER = "./images"
 
